@@ -1,0 +1,5 @@
+read from pointer without grabbing pointer (use XSelectInput or something idrk)
+comment my code
+grid-based movement
+read WM hints to implement desktops and not grab the bar
+add borders
