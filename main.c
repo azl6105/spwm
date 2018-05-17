@@ -24,6 +24,9 @@ int main(void)
 	unsigned int k;
 	Bind active_binds[sizeof(key_actions)/sizeof(KeyAction)+sizeof(command_actions)/sizeof(CommandAction)];
 	Bind * max_key_bind;
+	PointerMode active_modes[sizeof(button_actions)/sizeof(ButtonAction)];
+	PointerMode * max_pointer_mode;
+	Bool cursor_activated = False;
 
 	LinkedList * pressed_keys = NULL;
 
@@ -37,28 +40,30 @@ int main(void)
 	screen_num = DefaultScreen(display);
 	root_win = RootWindow(display, screen_num);
 	focus_win = root_win;
+		
 	
-	XGrabPointer(display, root_win, False,
-			ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
-			GrabModeAsync, GrabModeAsync,
-			root_win,
-			None, CurrentTime);
-	/*
 	XGrabButton(display, AnyButton, AnyModifier, root_win, True,
 			ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
 			GrabModeAsync, GrabModeAsync,
 			root_win,
 			None);
-	*/
-	//XSelectInput(display, focus_win, ButtonPressMask|ButtonReleaseMask|ButtonMotionMask);
+	
+	XSelectInput(display, focus_win, ButtonPressMask|ButtonReleaseMask|PointerMotionMask);
 	XGrabKey(display, XKeysymToKeycode(display, MOD_KEY),
 			AnyModifier, root_win, True,
 			GrabModeAsync, GrabModeAsync);
-
+	/*
+	XGrabPointer(display, root_win, False,
+			ButtonPressMask|ButtonReleaseMask|PointerMotionMask|EnterWindowMask,
+			GrabModeAsync, GrabModeAsync,
+			root_win,
+			None, CurrentTime);
+	*/
 	for(;;)
 	{
 		XNextEvent(display, &event);
-
+	
+		
 		switch(event.type)
 		{
 			case KeyPress:
@@ -92,13 +97,6 @@ int main(void)
 						        active_binds[k].commandaction = NULL;
 							active_binds[k].n_keys = n;
 							k++;
-
-							//printf("Keybind activated\n");
-							//key_actions[i].func(
-							//		key_actions[i].arg_type,
-							//		key_actions[i].arg_val,
-							//		display,
-							//		focus_win);
 						}
 					}
 					for(unsigned int i=0; i<sizeof(command_actions)/sizeof(CommandAction); i++)
@@ -112,9 +110,6 @@ int main(void)
 							active_binds[k].commandaction = &command_actions[i];
 							active_binds[k].n_keys = n;
 							k++;
-
-							//printf("Running command\n");
-							//system(command_actions[i].command);
 						}
 					}
 					for(unsigned int i=0; i<k; i++)
@@ -131,6 +126,7 @@ int main(void)
 					}
 					else if(max_key_bind != NULL && max_key_bind->commandaction == NULL)
 					{
+						printf("Running command with %d keys\n", max_key_bind->n_keys);
 						max_key_bind->keyaction->func(
 								max_key_bind->keyaction->arg_type,
 								max_key_bind->keyaction->arg_val,
@@ -155,7 +151,10 @@ int main(void)
 			case MODE_DEFAULT:
 				if(event.type == ButtonPress)
 				{
-					if(event.xbutton.button == FOCUS_BUTTON && !mod_pressed)
+					cursor_activated = False;
+					max_pointer_mode = NULL;
+					k=0;
+					if(event.xbutton.button == FOCUS_BUTTON && !mod_pressed && event.xbutton.subwindow)
 					{
 						focus_win = event.xbutton.subwindow;
 						XSetInputFocus(display, focus_win, RevertToNone, CurrentTime);
@@ -169,24 +168,30 @@ int main(void)
 						   event.xbutton.subwindow != None &&
 						   all_keys_pressed(button_actions[i].keysyms, pressed_keys))
 						{
-							printf("Switching Pointer Mode\n");
-							wmmode = button_actions[i].mode_switch;
-							init_press = event.xbutton;
-							XGetWindowAttributes(display, init_press.subwindow, &attr);
-							break;
+							n=0;
+							for(unsigned int j=0; j<MAX_KEYS && button_actions[i].keysyms[j] !=0; j++) n++;
+							active_modes[k].type = button_actions[i].mode_switch;
+							active_modes[k].n_keys = n;
+							k++;
+
+							if(!cursor_activated)
+							{
+								init_press = event.xbutton;
+								XGetWindowAttributes(display, init_press.subwindow, &attr);
+								cursor_activated = True;
+							}	
 						}
 					}
+					for(unsigned int i=0; i<k; i++)
+					{
+						if(max_pointer_mode == NULL) max_pointer_mode = &active_modes[i];
+						if(max_pointer_mode->n_keys < active_modes[i].n_keys)
+						{
+							max_pointer_mode = &active_modes[i];
+						}
+					}
+					if(max_pointer_mode != NULL) wmmode = max_pointer_mode->type;
 				}
-				
-			/*	
-				XUngrabPointer(display, CurrentTime);
-				
-				XGrabPointer(display, event.xbutton.subwindow, False,
-						ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
-						GrabModeAsync, GrabModeAsync,
-						root_win,
-						None, CurrentTime);
-				*/
 				break;
 
 			case MODE_MOVE:
@@ -227,7 +232,48 @@ int main(void)
 				}
 				break;
 
+			case MODE_GRID_MOVE:
+				if(event.type == ButtonRelease)
+				{
+					wmmode = MODE_DEFAULT;
+					break;
+				}
+				if(event.type == MotionNotify)
+				{
+					dx = event.xbutton.x_root - init_press.x_root;
+					dy = event.xbutton.y_root - init_press.y_root;
+
+					XMoveResizeWindow(display, init_press.subwindow,
+							((attr.x+dx)/WMGRID_WIDTH)*WMGRID_WIDTH,
+							((attr.y+dy)/WMGRID_HEIGHT)*WMGRID_HEIGHT,
+							attr.width,
+							attr.height);
+				}
+				break;
+
+			case MODE_GRID_RESIZE:
+				if(event.type == ButtonRelease)
+				{
+					wmmode = MODE_DEFAULT;
+					break;
+				}
+				if(event.type == MotionNotify)
+				{
+					dx = ((event.xbutton.x_root - init_press.x_root)/WMGRID_WIDTH)*WMGRID_WIDTH;
+					dy = ((event.xbutton.y_root - init_press.y_root)/WMGRID_HEIGHT)*WMGRID_HEIGHT;
+
+					XMoveResizeWindow(display, init_press.subwindow,
+							attr.x,
+							attr.y,
+							max(1, attr.width+dx),
+							max(1, attr.height+dy));
+				}
+				break;
+
 		}
+		//XSendEvent(display, event.xbutton.subwindow, True, 
+		//		ButtonPressMask|ButtonReleaseMask|PointerMotionMask, &event);
+		XAllowEvents(display, ReplayPointer, CurrentTime);
 	}
 	return 1;
 

@@ -1,6 +1,6 @@
 // width and height of the grid in pixels
-#define WMGRID_WIDTH 10
-#define WMGRID_HEIGHT 10
+#define WMGRID_WIDTH 30
+#define WMGRID_HEIGHT 30
 
 #include "control.c"
 #include <X11/keysymdef.h>
@@ -21,7 +21,9 @@ static ButtonAction button_actions[] =
 {
 	/* mode			button 		keysyms*/
 	{ MODE_MOVE,		1,	 	{0}},
-	{ MODE_RESIZE,		3,	 	{0}}
+	{ MODE_RESIZE,		3,	 	{0}},
+	{ MODE_GRID_MOVE,	1,		{XK_Alt_L}},
+	{ MODE_GRID_RESIZE,	3,		{XK_Alt_L}},
 };
 
 // Available functions: close_win, move_px, resize_px, grid_align, grid_move, grid_resize
@@ -30,14 +32,26 @@ KeyAction key_actions[] =
 	/* function		type		value		keysyms */
 	{ close_win,		0,		0,		{XK_x} },
 	{ grid_align,		0,		0,		{XK_a} },
+
 	{ resize_px,		ARG_LEFT,	5,		{XK_Left, XK_Shift_L} },
 	{ resize_px,		ARG_RIGHT,	5,		{XK_Right, XK_Shift_L} },
 	{ resize_px,		ARG_UP,		5,		{XK_Up, XK_Shift_L} },
 	{ resize_px,		ARG_DOWN,	5,		{XK_Down, XK_Shift_L} },
+
 	{ move_px,		ARG_LEFT,	5,		{XK_Left} },
 	{ move_px,		ARG_RIGHT,	5,		{XK_Right} },
 	{ move_px,		ARG_UP,		5,		{XK_Up} },
-	{ move_px,		ARG_DOWN,	5,		{XK_Down} }
+	{ move_px,		ARG_DOWN,	5,		{XK_Down} },
+
+	{ grid_move,		ARG_LEFT,	1,		{XK_Left, XK_Alt_L} },
+	{ grid_move,		ARG_RIGHT,	1,		{XK_Right, XK_Alt_L} },
+	{ grid_move,		ARG_UP,		1,		{XK_Up,	XK_Alt_L} },
+	{ grid_move,		ARG_DOWN,	1,		{XK_Down, XK_Alt_L} },
+
+	{ grid_resize,		ARG_LEFT,	1,		{XK_Left, XK_Shift_L, XK_Alt_L} },
+	{ grid_resize,		ARG_RIGHT,	1,		{XK_Right, XK_Shift_L, XK_Alt_L} },
+	{ grid_resize,		ARG_UP,		1,		{XK_Up, XK_Shift_L, XK_Alt_L} },
+	{ grid_resize,		ARG_DOWN,	1,		{XK_Down, XK_Shift_L, XK_Alt_L} },
 };
 
 // Make sure the command has an "&" at the end of it or else the window manager will hang

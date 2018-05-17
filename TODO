@@ -4,3 +4,4 @@ grid-based movement with the mouse
 read WM hints to implement desktops and not grab the bar
 add borders
 override keybinds that have overlap to use the ones with more presses
+decorate windows, refresh when refocusing or when recieveing MapNotify event

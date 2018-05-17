@@ -26,9 +26,15 @@ typedef struct LinkedList
 	struct LinkedList * next;
 } LinkedList;
 
-typedef struct Bind
+typedef struct
 {
 	KeyAction * keyaction;
 	CommandAction * commandaction;
 	unsigned int n_keys;
 } Bind;
+
+typedef struct
+{
+	int type;
+	unsigned int n_keys;
+} PointerMode;

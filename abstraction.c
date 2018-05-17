@@ -6,21 +6,17 @@ Bool node_is_nil(LinkedList * node)
 
 Bool all_keys_pressed(KeySym keysyms[], LinkedList * pressed_keys)
 {
-	//printf("Checking if all keys are pressed\n");
-
 	int n=0;
 	
 	for(unsigned int i=0; i<MAX_KEYS && keysyms[i] != 0; i++)
 	{
 		n++;
-		printf("Checking for %s. n=%d\n", XKeysymToString(keysyms[i]), n);
+		printf("  Checking for %s. n=%d\n", XKeysymToString(keysyms[i]), n);
 	}
-	printf("Checking for %d keys\n", n);
 	
 	LinkedList *elt, *tmp;
 	LL_FOREACH_SAFE(pressed_keys, elt, tmp)
 	{
-		printf("iterating\n");
 		for(unsigned int i=0; i<MAX_KEYS && keysyms[i] != 0; i++)
 		{
 			if(keysyms[i] == elt->key)
@@ -52,7 +48,6 @@ LinkedList * press_key(KeySym key, LinkedList * pressed_keys)
 	add->key = key;
 	LL_PREPEND(pressed_keys, add);
 	LL_COUNT(pressed_keys, elt, count);
-	printf("%d keys pressed\n", count);
 
 	return pressed_keys;
 }
