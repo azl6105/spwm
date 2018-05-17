@@ -25,3 +25,10 @@ typedef struct LinkedList
 	KeySym key;
 	struct LinkedList * next;
 } LinkedList;
+
+typedef struct Bind
+{
+	KeyAction * keyaction;
+	CommandAction * commandaction;
+	unsigned int n_keys;
+} Bind;

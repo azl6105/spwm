@@ -1,5 +1,6 @@
 read from pointer without grabbing pointer (use XSelectInput or something idrk)
 comment my code
-grid-based movement
+grid-based movement with the mouse
 read WM hints to implement desktops and not grab the bar
 add borders
+override keybinds that have overlap to use the ones with more presses

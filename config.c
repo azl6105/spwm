@@ -34,10 +34,10 @@ KeyAction key_actions[] =
 	{ resize_px,		ARG_RIGHT,	5,		{XK_Right, XK_Shift_L} },
 	{ resize_px,		ARG_UP,		5,		{XK_Up, XK_Shift_L} },
 	{ resize_px,		ARG_DOWN,	5,		{XK_Down, XK_Shift_L} },
-//	{ move_px,		ARG_LEFT,	5,		{XK_Left} },
-//	{ move_px,		ARG_RIGHT,	5,		{XK_Right} },
-//	{ move_px,		ARG_UP,		5,		{XK_Up} },
-//	{ move_px,		ARG_DOWN,	5,		{XK_Down} }
+	{ move_px,		ARG_LEFT,	5,		{XK_Left} },
+	{ move_px,		ARG_RIGHT,	5,		{XK_Right} },
+	{ move_px,		ARG_UP,		5,		{XK_Up} },
+	{ move_px,		ARG_DOWN,	5,		{XK_Down} }
 };
 
 // Make sure the command has an "&" at the end of it or else the window manager will hang

@@ -34,33 +34,37 @@ Bool all_keys_pressed(KeySym keysyms[], LinkedList * pressed_keys)
 	return (n==0);
 }
 
-int n_keys_pressed(LinkedList * pressed_keys)
+void list_keys_pressed(LinkedList * pressed_keys)
 {
-	//for debugging
-	if(pressed_keys->next==NULL) return 0;
-	return 1+n_keys_pressed(pressed_keys->next);
+	LinkedList * elt;
+	LL_FOREACH(pressed_keys, elt)
+	{
+		printf("  key pressed %s\n", XKeysymToString(elt->key));
+	}
 }
 
-void press_key(KeySym key, LinkedList * pressed_keys)
+LinkedList * press_key(KeySym key, LinkedList * pressed_keys)
 {
 	LinkedList * elt;
 	int count=0;
 	LinkedList * add;
 	add = (LinkedList *)malloc(sizeof *add);
 	add->key = key;
-	LL_APPEND(pressed_keys, add);
+	LL_PREPEND(pressed_keys, add);
 	LL_COUNT(pressed_keys, elt, count);
 	printf("%d keys pressed\n", count);
+
+	return pressed_keys;
 }
 
-void release_key(KeySym key, LinkedList * pressed_keys)
+LinkedList * release_key(KeySym key, LinkedList * pressed_keys)
 {
 	LinkedList *elt, *tmp;
 	LL_FOREACH_SAFE(pressed_keys, elt, tmp)
 	{
 		if(elt->key == key) LL_DELETE(pressed_keys, elt);
 	}
-
+	return pressed_keys;
 }
 
 KeySym EventKeysym(XEvent event)
