@@ -12,6 +12,7 @@ int main(void)
 	XEvent event;
 	uint8_t wmmode = MODE_DEFAULT;
 	Bool mod_pressed = False;
+	Bool pointer_grabbed = True;
 
 	// vars for move and resize
 	XButtonEvent init_press;
@@ -40,29 +41,27 @@ int main(void)
 	screen_num = DefaultScreen(display);
 	root_win = RootWindow(display, screen_num);
 	focus_win = root_win;
-		
-	
+	/*
 	XGrabButton(display, AnyButton, AnyModifier, root_win, True,
 			ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
 			GrabModeAsync, GrabModeAsync,
 			root_win,
 			None);
-	
+	*/
 	XSelectInput(display, focus_win, ButtonPressMask|ButtonReleaseMask|PointerMotionMask);
 	XGrabKey(display, XKeysymToKeycode(display, MOD_KEY),
 			AnyModifier, root_win, True,
 			GrabModeAsync, GrabModeAsync);
-	/*
+	
 	XGrabPointer(display, root_win, False,
 			ButtonPressMask|ButtonReleaseMask|PointerMotionMask|EnterWindowMask,
 			GrabModeAsync, GrabModeAsync,
 			root_win,
 			None, CurrentTime);
-	*/
+	
 	for(;;)
 	{
 		XNextEvent(display, &event);
-	
 		
 		switch(event.type)
 		{
@@ -84,6 +83,15 @@ int main(void)
 				{
 					k=0;
 					max_key_bind = NULL;
+					if(!pointer_grabbed)
+					{
+						XGrabPointer(display, root_win, False,
+								ButtonPressMask|ButtonReleaseMask|PointerMotionMask|EnterWindowMask,
+								GrabModeAsync, GrabModeAsync,
+								root_win,
+								None, CurrentTime);
+						pointer_grabbed = True;
+					}
 					for(unsigned int i=0; i<sizeof(key_actions)/sizeof(KeyAction); i++)
 					{
 						if(focus_win == root_win) break;
@@ -154,6 +162,13 @@ int main(void)
 					cursor_activated = False;
 					max_pointer_mode = NULL;
 					k=0;
+
+					if(event.xbutton.subwindow == focus_win && !mod_pressed && pointer_grabbed)
+					{
+						XUngrabPointer(display, CurrentTime);
+						pointer_grabbed = False;
+					}
+
 					if(event.xbutton.button == FOCUS_BUTTON && !mod_pressed && event.xbutton.subwindow)
 					{
 						focus_win = event.xbutton.subwindow;
